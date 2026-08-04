@@ -8,6 +8,10 @@
     "dev": "npm run db && concurrently -n api,web -c green,blue \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
+    "db:migrate": "cd backend && npm run migrate",
+    "db:migrate:deploy": "cd backend && npm run migrate:deploy",
+    "db:seed": "cd backend && npm run seed",
+    "db:studio": "cd backend && npm run studio",
     "build": "cd backend && npm run build && cd ../frontend && npm run build"
   },
   "devDependencies": {

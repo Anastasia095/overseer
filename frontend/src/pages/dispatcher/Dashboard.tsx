@@ -11,13 +11,36 @@ import ListItemText from '@mui/material/ListItemText';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import CircleIcon from '@mui/icons-material/Circle';
+import FleetMap from '../../components/maps/FleetMap';
+import type { FleetVehicle } from '../../components/maps/FleetMap';
 
 const assignedDrivers = [
-  { id: 1, name: 'John Smith', status: 'Available' as const },
-  { id: 2, name: 'Mike Johnson', status: 'En Route' as const },
-  { id: 3, name: 'Steve Brown', status: 'In Progress' as const },
-  { id: 4, name: 'Dan Wilson', status: 'Offline' as const },
+  {
+    id: 4,
+    name: 'John Carter',
+    status: 'Available' as const,
+    lat: 34.0522,
+    lng: -118.2437,
+    lastLocationAt: new Date(Date.now() - 5 * 60000).toISOString(),
+  },
+  {
+    id: 5,
+    name: 'Maria Santos',
+    status: 'En Route' as const,
+    lat: 34.0783,
+    lng: -118.1562,
+    lastLocationAt: new Date(Date.now() - 2 * 60000).toISOString(),
+  },
 ];
+
+const demoFleet: FleetVehicle[] = assignedDrivers.map((d) => ({
+  id: d.id,
+  name: d.name,
+  status: d.status,
+  lat: d.lat,
+  lng: d.lng,
+  lastLocationAt: d.lastLocationAt,
+}));
 
 const statusColors: Record<string, 'success' | 'info' | 'warning' | 'default'> = {
   Available: 'success',
@@ -83,26 +106,10 @@ export default function DispatcherDashboard() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 8 }}>
-          <Card variant="outlined">
+          <Card variant="outlined" sx={{ height: '100%' }}>
             <CardContent>
-              <Box
-                sx={{
-                  height: 400,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: 'background.default',
-                  borderRadius: 2,
-                }}
-              >
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h6" color="text.secondary">
-                    Google Maps
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Map will render here with live driver locations
-                  </Typography>
-                </Box>
+              <Box sx={{ height: 400, borderRadius: 2, overflow: 'hidden' }}>
+                <FleetMap vehicles={demoFleet} />
               </Box>
             </CardContent>
           </Card>

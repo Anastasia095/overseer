@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
@@ -6,15 +7,33 @@ import CardContent from "@mui/material/CardContent";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
+import Alert from "@mui/material/Alert";
+import CircularProgress from "@mui/material/CircularProgress";
+import { authApi } from "../api/auth";
+import { setToken } from "../api/client";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [role, setRole] = useState<"hr" | "dispatcher" | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (role === "hr") navigate("/hr");
-    if (role === "dispatcher") navigate("/dispatcher");
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const { token, user } = await authApi.login(email, password);
+      setToken(token);
+      const isDispatcher =
+        user.roles.includes("dispatcher") && !user.roles.includes("admin") && !user.roles.includes("hr");
+      navigate(isDispatcher ? "/dispatcher" : "/hr");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,54 +55,43 @@ export default function Login() {
             Fleet Location Dashboard
           </Typography>
 
-          <TextField
-            fullWidth
-            label="Email"
-            placeholder="you@company.com"
-            size="small"
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="Password"
-            type="password"
-            size="small"
-            sx={{ mb: 3 }}
-          />
+          <Box component="form" onSubmit={handleSubmit} noValidate>
+            <TextField
+              fullWidth
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              size="small"
+              sx={{ mb: 2 }}
+              required
+            />
+            <TextField
+              fullWidth
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              size="small"
+              sx={{ mb: 3 }}
+              required
+            />
 
-          <Typography variant="subtitle2" gutterBottom>
-            Role (demo)
-          </Typography>
-          <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
-            <Button
-              variant={role === "hr" ? "contained" : "outlined"}
-              onClick={() => setRole("hr")}
-              fullWidth
-            >
-              HR
-            </Button>
-            <Button
-              variant={role === "dispatcher" ? "contained" : "outlined"}
-              onClick={() => setRole("dispatcher")}
-              fullWidth
-            >
-              Dispatcher
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+
+            <Button fullWidth variant="contained" size="large" type="submit" disabled={loading}>
+              {loading ? <CircularProgress size={22} color="inherit" /> : "Sign In"}
             </Button>
           </Box>
 
-          <Button
-            fullWidth
-            variant="contained"
-            size="large"
-            disabled={!role}
-            onClick={handleLogin}
-          >
-            Sign In as {role === "hr" ? "HR" : role === "dispatcher" ? "Dispatcher" : ""}
-          </Button>
-
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block' }}>
-            Demo credentials — no real auth implemented yet
+          <Typography variant="caption" color="text.secondary" align="center" sx={{ display: "block", mt: 2 }}>
+            Demo: admin@ / hr@ / dispatcher@overseer.dev — password123
           </Typography>
         </CardContent>
       </Card>

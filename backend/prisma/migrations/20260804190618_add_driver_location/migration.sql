@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "DriverProfile" ADD COLUMN     "lastLat" DOUBLE PRECISION,
+ADD COLUMN     "lastLng" DOUBLE PRECISION,
+ADD COLUMN     "lastLocationAt" TIMESTAMP(3);

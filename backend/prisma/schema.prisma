@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum DriverStatus {
+  AVAILABLE
+  EN_ROUTE
+  IN_PROGRESS
+  OFFLINE
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
+  OUT_OF_SERVICE
+}
+
+enum AssignmentStatus {
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  phone        String?
+  isActive     Boolean  @default(true)
+  deletedAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  roles                  Role[]
+  driverProfile          DriverProfile?      @relation("DriverProfileOwner")
+  dispatcherProfile      DispatcherProfile?
+  assignedDrivers        DriverProfile[]     @relation("AssignedDispatcher")
+  assignmentsAsDriver    Assignment[]        @relation("DriverAssignments")
+  assignmentsAsDispatcher Assignment[]       @relation("DispatcherAssignments")
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  permissions Permission[]
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  roles Role[]
+}
+
+model DriverProfile {
+  driverId             Int          @id
+  licenseNo            String
+  licenseClass         String
+  licenseExpiry        DateTime
+  status               DriverStatus @default(OFFLINE)
+  assignedDispatcherId Int?
+  lastLat              Float?
+  lastLng              Float?
+  lastLocationAt       DateTime?
+  deletedAt            DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  driver     User  @relation("DriverProfileOwner", fields: [driverId], references: [id], onDelete: Cascade)
+  dispatcher User? @relation("AssignedDispatcher", fields: [assignedDispatcherId], references: [id])
+}
+
+model DispatcherProfile {
+  dispatcherId Int      @id
+  deletedAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  dispatcher User @relation(fields: [dispatcherId], references: [id], onDelete: Cascade)
+}
+
+model Vehicle {
+  id        Int           @id @default(autoincrement())
+  make      String
+  model     String
+  year      Int
+  vin       String        @unique
+  plate     String        @unique
+  status    VehicleStatus @default(AVAILABLE)
+  deletedAt DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  assignments Assignment[]
+}
+
+model Assignment {
+  id           Int              @id @default(autoincrement())
+  driverId     Int
+  vehicleId    Int
+  dispatcherId Int
+  assignedAt   DateTime         @default(now())
+  startsAt     DateTime?
+  endsAt       DateTime?
+  status       AssignmentStatus @default(SCHEDULED)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  driver     User    @relation("DriverAssignments", fields: [driverId], references: [id])
+  vehicle    Vehicle @relation(fields: [vehicleId], references: [id])
+  dispatcher User    @relation("DispatcherAssignments", fields: [dispatcherId], references: [id])
+}
