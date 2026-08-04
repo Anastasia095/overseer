@@ -4,16 +4,19 @@ interface CustomizedDataGridProps {
   rows: GridRowsProp;
   columns: GridColDef[];
   checkboxSelection?: boolean;
+  loading?: boolean;
 }
 
 export default function CustomizedDataGrid({
   rows,
   columns,
   checkboxSelection = true,
+  loading = false,
 }: CustomizedDataGridProps) {
   return (
     <DataGrid
       checkboxSelection={checkboxSelection}
+      loading={loading}
       rows={rows}
       columns={columns}
       getRowClassName={(params) =>

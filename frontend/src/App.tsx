@@ -20,7 +20,7 @@ export default function App() {
         <Route path="/hr" element={<RequireAuth><HrDashboard /></RequireAuth>} />
         <Route path="/hr/drivers" element={<RequireAuth><HrDrivers /></RequireAuth>} />
         <Route path="/hr/vehicles" element={<RequireAuth><HrVehicles /></RequireAuth>} />
-        <Route path="/dispatcher" element={<RequireAuth><DispatcherDashboard /></RequireAuth>} />
+        <Route path="/dispatch" element={<RequireAuth><DispatcherDashboard /></RequireAuth>} />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

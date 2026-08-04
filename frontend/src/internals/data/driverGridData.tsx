@@ -2,13 +2,20 @@ import { GridRowsProp, GridColDef } from '@mui/x-data-grid';
 import Avatar from '@mui/material/Avatar';
 import Chip from '@mui/material/Chip';
 
-export type DriverStatus = 'Available' | 'En Route' | 'In Progress' | 'Offline';
+export type DriverStatus = 'AVAILABLE' | 'EN_ROUTE' | 'IN_PROGRESS' | 'OFFLINE';
 
 const statusColors: Record<DriverStatus, 'success' | 'info' | 'warning' | 'default'> = {
-  Available: 'success',
-  'En Route': 'info',
-  'In Progress': 'warning',
-  Offline: 'default',
+  AVAILABLE: 'success',
+  EN_ROUTE: 'info',
+  IN_PROGRESS: 'warning',
+  OFFLINE: 'default',
+};
+
+const statusLabels: Record<DriverStatus, string> = {
+  AVAILABLE: 'Available',
+  EN_ROUTE: 'En Route',
+  IN_PROGRESS: 'In Progress',
+  OFFLINE: 'Offline',
 };
 
 export const driverColumns: GridColDef[] = [
@@ -27,9 +34,9 @@ export const driverColumns: GridColDef[] = [
             bgcolor: 'primary.main',
           }}
         >
-          {params.value.name.toUpperCase().substring(0, 1)}
+          {String(params.value).toUpperCase().substring(0, 1)}
         </Avatar>
-        {params.value.name}
+        {params.value}
       </div>
     ),
   },
@@ -41,9 +48,9 @@ export const driverColumns: GridColDef[] = [
     minWidth: 110,
     renderCell: (params) => (
       <Chip
-        label={params.value}
+        label={params.value ? statusLabels[params.value as DriverStatus] : '—'}
         size="small"
-        color={statusColors[params.value as DriverStatus]}
+        color={params.value ? statusColors[params.value as DriverStatus] : 'default'}
       />
     ),
   },
@@ -54,49 +61,49 @@ export const driverColumns: GridColDef[] = [
 export const driverRows: GridRowsProp = [
   {
     id: 1,
-    name: { name: 'John Smith' },
+    name: 'John Smith',
     email: 'john@example.com',
-    status: 'Available',
+    status: 'AVAILABLE',
     dispatcher: 'Alice',
     phone: '(555) 010-1234',
   },
   {
     id: 2,
-    name: { name: 'Mike Johnson' },
+    name: 'Mike Johnson',
     email: 'mike@example.com',
-    status: 'En Route',
+    status: 'EN_ROUTE',
     dispatcher: 'Alice',
     phone: '(555) 010-2234',
   },
   {
     id: 3,
-    name: { name: 'Steve Brown' },
+    name: 'Steve Brown',
     email: 'steve@example.com',
-    status: 'In Progress',
+    status: 'IN_PROGRESS',
     dispatcher: 'Bob',
     phone: '(555) 010-3234',
   },
   {
     id: 4,
-    name: { name: 'Dan Wilson' },
+    name: 'Dan Wilson',
     email: 'dan@example.com',
-    status: 'Offline',
+    status: 'OFFLINE',
     dispatcher: 'Bob',
     phone: '(555) 010-4234',
   },
   {
     id: 5,
-    name: { name: 'Carlos Rivera' },
+    name: 'Carlos Rivera',
     email: 'carlos@example.com',
-    status: 'En Route',
+    status: 'EN_ROUTE',
     dispatcher: 'Alice',
     phone: '(555) 010-5234',
   },
   {
     id: 6,
-    name: { name: 'Tom Nguyen' },
+    name: 'Tom Nguyen',
     email: 'tom@example.com',
-    status: 'Available',
+    status: 'AVAILABLE',
     dispatcher: 'Bob',
     phone: '(555) 010-6234',
   },
