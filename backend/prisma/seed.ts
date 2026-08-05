@@ -66,6 +66,81 @@ const roleDefs = [
   },
 ] as const;
 
+function startOfWeek(d: Date): Date {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const day = (x.getDay() + 6) % 7;
+  x.setDate(x.getDate() - day);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+async function seedHistoricalLoads(opts: {
+  driver1: { id: number };
+  driver2: { id: number };
+  camry: { id: number };
+  transit: { id: number };
+  dispatcherId: number;
+}) {
+  // Demo history only: wipe previously seeded COMPLETED/CANCELLED loads so the
+  // seed stays idempotent across runs. Real in-flight loads are left untouched.
+  await prisma.assignment.deleteMany({
+    where: { status: { in: ["COMPLETED", "CANCELLED"] } },
+  });
+
+  const now = new Date();
+  const thisMonday = startOfWeek(now);
+  const drivers = [opts.driver1, opts.driver2];
+  const vehicles = [opts.camry, opts.transit];
+
+  for (let w = 8; w >= 1; w--) {
+    const monday = new Date(thisMonday.getTime() - w * 7 * 24 * 60 * 60 * 1000);
+    const completedCount = w % 2 === 0 ? 2 : 3;
+
+    for (let i = 0; i < completedCount; i++) {
+      await prisma.assignment.create({
+        data: {
+          driverId: drivers[i % drivers.length].id,
+          vehicleId: vehicles[i % vehicles.length].id,
+          dispatcherId: opts.dispatcherId,
+          status: "COMPLETED",
+          createdAt: new Date(monday.getTime() + i * 3600 * 1000),
+          assignedAt: new Date(monday.getTime() + i * 3600 * 1000),
+          startsAt: new Date(monday.getTime() + i * 3600 * 1000),
+          endsAt: new Date(monday.getTime() + (i + 6) * 3600 * 1000),
+          completedAt: new Date(monday.getTime() + (i + 5) * 3600 * 1000),
+        },
+      });
+    }
+
+    await prisma.assignment.create({
+      data: {
+        driverId: drivers[completedCount % drivers.length].id,
+        vehicleId: vehicles[completedCount % vehicles.length].id,
+        dispatcherId: opts.dispatcherId,
+        status: "CANCELLED",
+        createdAt: new Date(monday.getTime() + 2 * 3600 * 1000),
+        assignedAt: new Date(monday.getTime() + 2 * 3600 * 1000),
+        startsAt: new Date(monday.getTime() + 2 * 3600 * 1000),
+        cancelledAt: new Date(monday.getTime() + 3 * 3600 * 1000),
+      },
+    });
+  }
+}
+
+async function seedStatSnapshots() {
+  const now = new Date();
+  for (let m = 8; m >= 1; m--) {
+    const month = new Date(now.getFullYear(), now.getMonth() - m, 1);
+    const activeDrivers = 4 + (8 - m);
+    const totalVehicles = 6 + (8 - m) * 2;
+    await prisma.statSnapshot.upsert({
+      where: { month },
+      update: { activeDrivers, totalVehicles },
+      create: { month, activeDrivers, totalVehicles },
+    });
+  }
+}
+
 async function main() {
   const passwordHash = await import("bcryptjs").then(({ hash }) => hash(SEED_PASSWORD, 10));
 
@@ -238,7 +313,10 @@ async function main() {
   }
 
   const driver1 = await prisma.user.findUnique({ where: { email: "driver1@overseer.dev" } });
+  const driver2 = await prisma.user.findUnique({ where: { email: "driver2@overseer.dev" } });
   const camry = await prisma.vehicle.findUnique({ where: { vin: "4T1G11AK2MU123456" } });
+  const transit = await prisma.vehicle.findUnique({ where: { vin: "1FTYR2ZM0KKA12345" } });
+
   if (driver1 && camry) {
     const existing = await prisma.assignment.findFirst({
       where: { driverId: driver1.id, vehicleId: camry.id },
@@ -257,7 +335,21 @@ async function main() {
     }
   }
 
-  console.log("Seeded roles, permissions, users, drivers, vehicles, and an assignment.");
+  if (driver1 && driver2 && camry && transit) {
+    await seedHistoricalLoads({
+      driver1,
+      driver2,
+      camry,
+      transit,
+      dispatcherId: dispatcher.id,
+    });
+  }
+
+  await seedStatSnapshots();
+
+  console.log(
+    "Seeded roles, permissions, users, drivers, vehicles, loads, and monthly snapshots.",
+  );
 }
 
 main()

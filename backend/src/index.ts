@@ -4,6 +4,7 @@ import cors from "cors";
 import authRouter from "./routes/auth.js";
 import driversRouter from "./routes/drivers.js";
 import dashboardRouter from "./routes/dashboard.js";
+import { startStatSnapshotJob } from "./jobs/statSnapshot.js";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -30,4 +31,5 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 app.listen(port, () => {
   console.log(`Backend running on http://localhost:${port}`);
+  startStatSnapshotJob();
 });

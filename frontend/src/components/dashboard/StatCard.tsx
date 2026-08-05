@@ -14,6 +14,8 @@ export type StatCardProps = {
   interval: string;
   trend?: 'up' | 'down' | 'neutral';
   data?: number[];
+  xLabels?: string[];
+  footer?: string;
 };
 
 function getDaysInMonth(month: number, year: number) {
@@ -48,6 +50,8 @@ export default function StatCard({
   interval,
   trend,
   data,
+  xLabels,
+  footer,
 }: StatCardProps) {
   const theme = useTheme();
   const daysInWeek = getDaysInMonth(4, 2024);
@@ -102,6 +106,11 @@ export default function StatCard({
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
               {interval}
             </Typography>
+            {footer && (
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {footer}
+              </Typography>
+            )}
           </Stack>
           {data && (
             <Box sx={{ width: '100%', height: 50 }}>
@@ -113,7 +122,7 @@ export default function StatCard({
                 showTooltip
                 xAxis={{
                   scaleType: 'band',
-                  data: daysInWeek, // Use the correct property 'data' for xAxis
+                  data: xLabels ?? daysInWeek,
                 }}
                 sx={{
                   [`& .${lineClasses.area}`]: {

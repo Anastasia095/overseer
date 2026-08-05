@@ -1,10 +1,24 @@
 import { api } from "./client";
 
+export interface MonthlyPoint {
+  label: string;
+  activeDrivers: number;
+  totalVehicles: number;
+}
+
+export interface WeeklyPoint {
+  label: string;
+  dispatched: number;
+  completed: number;
+  cancelled: number;
+}
+
 export interface DashboardStats {
   activeDrivers: number;
-  offlineDrivers: number;
   totalVehicles: number;
-  activeAssignments: number;
+  activeLoads: number;
+  monthly: MonthlyPoint[];
+  weekly: WeeklyPoint[];
 }
 
 export const dashboardApi = {

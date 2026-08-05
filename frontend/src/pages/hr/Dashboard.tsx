@@ -8,7 +8,60 @@ import Alert from '@mui/material/Alert';
 import StatCard, { StatCardProps } from '../../components/dashboard/StatCard';
 import DriverList from '../../components/DriverList';
 import HighlightedCard from '../../components/dashboard/HighlightedCard';
-import { dashboardApi } from '../../api/dashboard';
+import { dashboardApi, DashboardStats } from '../../api/dashboard';
+
+function sum(values: number[]): number {
+  return values.reduce((acc, n) => acc + n, 0);
+}
+
+function trendFrom(values: number[]): 'up' | 'down' | 'neutral' {
+  const first = values.find((n) => n > 0) ?? 0;
+  const last = values.length ? values[values.length - 1] : 0;
+  if (last > first) return 'up';
+  if (last < first) return 'down';
+  return 'neutral';
+}
+
+function toCards(data: DashboardStats): StatCardProps[] {
+  const activeLoads = sum(data.weekly.map((w) => w.completed));
+  const dispatched = sum(data.weekly.map((w) => w.dispatched));
+  const cancelled = sum(data.weekly.map((w) => w.cancelled));
+  const monthLabels = data.monthly.map((m) => m.label);
+  const weekLabels = data.weekly.map((w) => w.label);
+
+  return [
+    {
+      title: 'Active Drivers',
+      value: String(data.activeDrivers),
+      interval: 'Working now',
+      trend: trendFrom(data.monthly.map((m) => m.activeDrivers)),
+      data: data.monthly.map((m) => m.activeDrivers),
+      xLabels: monthLabels,
+    },
+    {
+      title: 'Total Vehicles',
+      value: String(data.totalVehicles),
+      interval: 'In fleet',
+      trend: trendFrom(data.monthly.map((m) => m.totalVehicles)),
+      data: data.monthly.map((m) => m.totalVehicles),
+      xLabels: monthLabels,
+    },
+    {
+      title: 'Active Loads',
+      value: String(data.activeLoads),
+      interval: 'Live now',
+    },
+    {
+      title: 'Loads Completed',
+      value: String(activeLoads),
+      interval: 'Last 12 weeks',
+      trend: trendFrom(data.weekly.map((w) => w.completed)),
+      data: data.weekly.map((w) => w.completed),
+      xLabels: weekLabels,
+      footer: `${dispatched} dispatched · ${cancelled} cancelled`,
+    },
+  ];
+}
 
 export default function HrDashboard() {
   const [stats, setStats] = useState<StatCardProps[]>([]);
@@ -21,28 +74,7 @@ export default function HrDashboard() {
       .stats()
       .then((data) => {
         if (!active) return;
-        setStats([
-          {
-            title: 'Active Drivers',
-            value: String(data.activeDrivers),
-            interval: 'Working now',
-          },
-          {
-            title: 'Offline Drivers',
-            value: String(data.offlineDrivers),
-            interval: 'Not working',
-          },
-          {
-            title: 'Total Vehicles',
-            value: String(data.totalVehicles),
-            interval: 'In fleet',
-          },
-          {
-            title: 'Active Assignments',
-            value: String(data.activeAssignments),
-            interval: 'Trips in progress',
-          },
-        ]);
+        setStats(toCards(data));
       })
       .catch((err: Error) => {
         if (active) setError(err.message);

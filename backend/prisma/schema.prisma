@@ -121,6 +121,8 @@ model Assignment {
   assignedAt   DateTime         @default(now())
   startsAt     DateTime?
   endsAt       DateTime?
+  completedAt  DateTime?
+  cancelledAt  DateTime?
   status       AssignmentStatus @default(SCHEDULED)
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
@@ -128,4 +130,13 @@ model Assignment {
   driver     User    @relation("DriverAssignments", fields: [driverId], references: [id])
   vehicle    Vehicle @relation(fields: [vehicleId], references: [id])
   dispatcher User    @relation("DispatcherAssignments", fields: [dispatcherId], references: [id])
+}
+
+model StatSnapshot {
+  id             Int      @id @default(autoincrement())
+  month          DateTime @unique
+  activeDrivers  Int
+  totalVehicles  Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
