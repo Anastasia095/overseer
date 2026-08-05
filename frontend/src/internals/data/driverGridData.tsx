@@ -1,4 +1,4 @@
-import { GridRowsProp, GridColDef } from '@mui/x-data-grid';
+import { GridColDef } from '@mui/x-data-grid';
 import Avatar from '@mui/material/Avatar';
 import Chip from '@mui/material/Chip';
 
@@ -56,55 +56,4 @@ export const driverColumns: GridColDef[] = [
   },
   { field: 'dispatcher', headerName: 'Dispatcher', flex: 0.5, minWidth: 110 },
   { field: 'phone', headerName: 'Phone', flex: 1, minWidth: 130 },
-];
-
-export const driverRows: GridRowsProp = [
-  {
-    id: 1,
-    name: 'John Smith',
-    email: 'john@example.com',
-    status: 'AVAILABLE',
-    dispatcher: 'Alice',
-    phone: '(555) 010-1234',
-  },
-  {
-    id: 2,
-    name: 'Mike Johnson',
-    email: 'mike@example.com',
-    status: 'EN_ROUTE',
-    dispatcher: 'Alice',
-    phone: '(555) 010-2234',
-  },
-  {
-    id: 3,
-    name: 'Steve Brown',
-    email: 'steve@example.com',
-    status: 'IN_PROGRESS',
-    dispatcher: 'Bob',
-    phone: '(555) 010-3234',
-  },
-  {
-    id: 4,
-    name: 'Dan Wilson',
-    email: 'dan@example.com',
-    status: 'OFFLINE',
-    dispatcher: 'Bob',
-    phone: '(555) 010-4234',
-  },
-  {
-    id: 5,
-    name: 'Carlos Rivera',
-    email: 'carlos@example.com',
-    status: 'EN_ROUTE',
-    dispatcher: 'Alice',
-    phone: '(555) 010-5234',
-  },
-  {
-    id: 6,
-    name: 'Tom Nguyen',
-    email: 'tom@example.com',
-    status: 'AVAILABLE',
-    dispatcher: 'Bob',
-    phone: '(555) 010-6234',
-  },
 ];
