@@ -28,7 +28,7 @@ export default function Login() {
       setToken(token);
       const isDispatcher =
         user.roles.includes("dispatcher") && !user.roles.includes("admin") && !user.roles.includes("hr");
-      navigate(isDispatcher ? "/dispatcher" : "/hr");
+      navigate(isDispatcher ? "/dispatch" : "/hr");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
