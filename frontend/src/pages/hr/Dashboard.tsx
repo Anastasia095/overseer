@@ -3,9 +3,8 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import StatCard, { StatCardProps } from '../../components/dashboard/StatCard';
-import CustomizedDataGrid from '../../components/dashboard/CustomizedDataGrid';
+import DriverList from "../../components/DriverList";
 import HighlightedCard from '../../components/dashboard/HighlightedCard';
-import { driverRows, driverColumns } from '../../internals/data/driverGridData';
 
 const stats: StatCardProps[] = [
   {
@@ -77,7 +76,7 @@ export default function HrDashboard() {
       <Grid container spacing={2} columns={12}>
         <Grid size={{ xs: 12 }}>
           <Stack sx={{ gap: 2 }}>
-            <CustomizedDataGrid rows={driverRows} columns={driverColumns} />
+            <DriverList />
           </Stack>
         </Grid>
       </Grid>

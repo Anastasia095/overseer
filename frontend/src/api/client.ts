@@ -24,6 +24,7 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  //centralized authentication
   const token = getToken();
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,

@@ -1,5 +1,7 @@
+// custom api instance import
 import { api } from "./client";
 
+// shape of the object returned by the server
 export interface Driver {
   id: number;
   name: string;
@@ -10,5 +12,7 @@ export interface Driver {
 }
 
 export const driversApi = {
-  list: () => api.get<Driver[]>("/drivers"),
+  list() {
+    return api.get<Driver[]>("/drivers")
+  }
 };
