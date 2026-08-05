@@ -12,8 +12,8 @@ export type StatCardProps = {
   title: string;
   value: string;
   interval: string;
-  trend: 'up' | 'down' | 'neutral';
-  data: number[];
+  trend?: 'up' | 'down' | 'neutral';
+  data?: number[];
 };
 
 function getDaysInMonth(month: number, year: number) {
@@ -73,8 +73,8 @@ export default function StatCard({
     neutral: 'default' as const,
   };
 
-  const color = labelColors[trend];
-  const chartColor = trendColors[trend];
+  const color = trend ? labelColors[trend] : undefined;
+  const chartColor = trend ? trendColors[trend] : theme.palette.grey[400];
   const trendValues = { up: '+25%', down: '-25%', neutral: '+5%' };
 
   return (
@@ -95,32 +95,36 @@ export default function StatCard({
               <Typography variant="h4" component="p">
                 {value}
               </Typography>
-              <Chip size="small" color={color} label={trendValues[trend]} />
+              {trend && (
+                <Chip size="small" color={color} label={trendValues[trend]} />
+              )}
             </Stack>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
               {interval}
             </Typography>
           </Stack>
-          <Box sx={{ width: '100%', height: 50 }}>
-            <SparkLineChart
-              color={chartColor}
-              data={data}
-              area
-              showHighlight
-              showTooltip
-              xAxis={{
-                scaleType: 'band',
-                data: daysInWeek, // Use the correct property 'data' for xAxis
-              }}
-              sx={{
-                [`& .${lineClasses.area}`]: {
-                  fill: `url(#area-gradient-${value})`,
-                },
-              }}
-            >
-              <AreaGradient color={chartColor} id={`area-gradient-${value}`} />
-            </SparkLineChart>
-          </Box>
+          {data && (
+            <Box sx={{ width: '100%', height: 50 }}>
+              <SparkLineChart
+                color={chartColor}
+                data={data}
+                area
+                showHighlight
+                showTooltip
+                xAxis={{
+                  scaleType: 'band',
+                  data: daysInWeek, // Use the correct property 'data' for xAxis
+                }}
+                sx={{
+                  [`& .${lineClasses.area}`]: {
+                    fill: `url(#area-gradient-${value})`,
+                  },
+                }}
+              >
+                <AreaGradient color={chartColor} id={`area-gradient-${value}`} />
+              </SparkLineChart>
+            </Box>
+          )}
         </Stack>
       </CardContent>
     </Card>
