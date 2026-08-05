@@ -14,7 +14,7 @@ const mainListItems = [
   { text: 'HR Dashboard', path: '/hr', icon: <DashboardRoundedIcon /> },
   { text: 'Drivers', path: '/hr/drivers', icon: <PeopleRoundedIcon /> },
   { text: 'Vehicles', path: '/hr/vehicles', icon: <LocalShippingRoundedIcon /> },
-  { text: 'Dispatcher', path: '/dispatcher', icon: <MapRoundedIcon /> },
+  { text: 'Dispatcher', path: '/dispatch', icon: <MapRoundedIcon /> },
 ];
 
 export default function MenuContent() {

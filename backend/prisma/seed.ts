@@ -34,7 +34,7 @@ const roleDefs = [
   {
     slug: "hr",
     name: "HR",
-    description: "Manages driver/dispatcher accounts, vehicles, and fleet documentation",
+    description: "Manages driver/dispatch accounts, vehicles, and fleet documentation",
     permissionSlugs: [
       "drivers.view", "drivers.create", "drivers.update", "drivers.delete",
       "dispatchers.view", "dispatchers.create", "dispatchers.update", "dispatchers.delete",

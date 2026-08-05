@@ -19,7 +19,7 @@ const routeMap: Record<string, string> = {
   '/hr': 'HR Dashboard',
   '/hr/drivers': 'Drivers',
   '/hr/vehicles': 'Vehicles',
-  '/dispatcher': 'Dispatcher Dashboard',
+  '/dispatch': 'Dispatcher Dashboard',
 };
 
 export default function NavbarBreadcrumbs() {
