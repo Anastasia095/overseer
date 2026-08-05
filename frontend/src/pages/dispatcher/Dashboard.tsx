@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
@@ -13,51 +13,68 @@ import Divider from '@mui/material/Divider';
 import CircleIcon from '@mui/icons-material/Circle';
 import FleetMap from '../../components/maps/FleetMap';
 import type { FleetVehicle } from '../../components/maps/FleetMap';
+import { driversApi } from '../../api/drivers';
+import type { Driver } from '../../api/drivers';
 
-const assignedDrivers = [
-  {
-    id: 4,
-    name: 'John Carter',
-    status: 'Available' as const,
-    lat: 34.0522,
-    lng: -118.2437,
-    lastLocationAt: new Date(Date.now() - 5 * 60000).toISOString(),
-  },
-  {
-    id: 5,
-    name: 'Maria Santos',
-    status: 'En Route' as const,
-    lat: 34.0783,
-    lng: -118.1562,
-    lastLocationAt: new Date(Date.now() - 2 * 60000).toISOString(),
-  },
-];
-
-const demoFleet: FleetVehicle[] = assignedDrivers.map((d) => ({
-  id: d.id,
-  name: d.name,
-  status: d.status,
-  lat: d.lat,
-  lng: d.lng,
-  lastLocationAt: d.lastLocationAt,
-}));
+const statusLabels: Record<string, string> = {
+  AVAILABLE: 'Available',
+  EN_ROUTE: 'En Route',
+  IN_PROGRESS: 'In Progress',
+  OFFLINE: 'Offline',
+};
 
 const statusColors: Record<string, 'success' | 'info' | 'warning' | 'default'> = {
-  Available: 'success',
-  'En Route': 'info',
-  'In Progress': 'warning',
-  Offline: 'default',
+  AVAILABLE: 'success',
+  EN_ROUTE: 'info',
+  IN_PROGRESS: 'warning',
+  OFFLINE: 'default',
 };
 
 const statusIconColors: Record<string, string> = {
-  Available: '#2e7d32',
-  'En Route': '#0288d1',
-  'In Progress': '#ed6c02',
-  Offline: '#9e9e9e',
+  AVAILABLE: '#2e7d32',
+  EN_ROUTE: '#0288d1',
+  IN_PROGRESS: '#ed6c02',
+  OFFLINE: '#9e9e9e',
 };
 
 export default function DispatcherDashboard() {
-  const [selectedDriver, setSelectedDriver] = useState(assignedDrivers[0]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    driversApi
+      .list()
+      .then((data) => {
+        if (cancelled) return;
+        setDrivers(data);
+        setSelectedDriver(data[0] ?? null);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load drivers');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const fleet: FleetVehicle[] = useMemo(
+    () =>
+      drivers.map((d) => ({
+        id: d.id,
+        name: d.name,
+        status: d.status ? statusLabels[d.status] ?? d.status : undefined,
+        lat: d.lastLat ?? undefined,
+        lng: d.lastLng ?? undefined,
+        lastLocationAt: d.lastLocationAt ?? undefined,
+      })),
+    [drivers],
+  );
 
   return (
     <Box sx={{ width: '100%', maxWidth: { sm: '100%', md: '1700px' } }}>
@@ -72,27 +89,27 @@ export default function DispatcherDashboard() {
                 Assigned Drivers
               </Typography>
               <List disablePadding>
-                {assignedDrivers.map((driver, i) => (
+                {drivers.map((driver, i) => (
                   <Box key={driver.id}>
                     {i > 0 && <Divider component="li" />}
                     <ListItemButton
-                      selected={selectedDriver.id === driver.id}
+                      selected={selectedDriver?.id === driver.id}
                       onClick={() => setSelectedDriver(driver)}
                       sx={{ borderRadius: 1 }}
                     >
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CircleIcon
                           fontSize="small"
-                          sx={{ color: statusIconColors[driver.status] }}
+                          sx={{ color: statusIconColors[driver.status ?? ''] }}
                         />
                       </ListItemIcon>
                       <ListItemText
                         primary={driver.name}
                         secondary={
                           <Chip
-                            label={driver.status}
+                            label={statusLabels[driver.status ?? ''] ?? driver.status}
                             size="small"
-                            color={statusColors[driver.status]}
+                            color={statusColors[driver.status ?? ''] ?? 'default'}
                             sx={{ mt: 0.5 }}
                           />
                         }
@@ -100,6 +117,11 @@ export default function DispatcherDashboard() {
                     </ListItemButton>
                   </Box>
                 ))}
+                {drivers.length === 0 && !loading && (
+                  <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+                    {error ? error : 'No assigned drivers'}
+                  </Typography>
+                )}
               </List>
             </CardContent>
           </Card>
@@ -109,7 +131,7 @@ export default function DispatcherDashboard() {
           <Card variant="outlined" sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ height: 400, borderRadius: 2, overflow: 'hidden' }}>
-                <FleetMap vehicles={demoFleet} />
+                <FleetMap vehicles={fleet} />
               </Box>
             </CardContent>
           </Card>
@@ -119,7 +141,7 @@ export default function DispatcherDashboard() {
           <Card variant="outlined">
             <CardContent>
               <Typography component="h2" variant="subtitle2" gutterBottom>
-                Selected Driver — {selectedDriver.name}
+                Selected Driver — {selectedDriver?.name ?? 'None'}
               </Typography>
               <Grid container spacing={2} columns={12}>
                 <Grid size={{ xs: 6, md: 3 }}>
@@ -127,35 +149,41 @@ export default function DispatcherDashboard() {
                     Status
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    <Chip
-                      label={selectedDriver.status}
-                      size="small"
-                      color={statusColors[selectedDriver.status]}
-                    />
+                    {selectedDriver ? (
+                      <Chip
+                        label={statusLabels[selectedDriver.status ?? ''] ?? selectedDriver.status}
+                        size="small"
+                        color={statusColors[selectedDriver.status ?? ''] ?? 'default'}
+                      />
+                    ) : (
+                      '—'
+                    )}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 6, md: 3 }}>
                   <Typography variant="caption" color="text.secondary">
-                    Origin
+                    Phone
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    Los Angeles, CA
+                    {selectedDriver?.phone ?? '—'}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 6, md: 3 }}>
                   <Typography variant="caption" color="text.secondary">
-                    Destination
+                    Dispatcher
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    San Francisco, CA
+                    {selectedDriver?.dispatcher ?? '—'}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 6, md: 3 }}>
                   <Typography variant="caption" color="text.secondary">
-                    Last Update
+                    Last Location
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    2 min ago
+                    {selectedDriver?.lastLat != null && selectedDriver?.lastLng != null
+                      ? `${selectedDriver.lastLat.toFixed(4)}, ${selectedDriver.lastLng.toFixed(4)}`
+                      : '—'}
                   </Typography>
                 </Grid>
               </Grid>

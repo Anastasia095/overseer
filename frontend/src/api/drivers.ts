@@ -9,6 +9,9 @@ export interface Driver {
   status: string | null;
   dispatcher: string | null;
   phone: string | null;
+  lastLat: number | null;
+  lastLng: number | null;
+  lastLocationAt: string | null;
 }
 
 export const driversApi = {

@@ -27,6 +27,9 @@ router.get(
             ? `${profile.dispatcher.firstName} ${profile.dispatcher.lastName}`
             : null,
           phone: u.phone,
+          lastLat: profile.lastLat,
+          lastLng: profile.lastLng,
+          lastLocationAt: profile.lastLocationAt,
         };
       });
 
