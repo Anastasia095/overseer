@@ -21,6 +21,11 @@ enum VehicleStatus {
   OUT_OF_SERVICE
 }
 
+enum VehicleOwnership {
+  OWNER_OPERATOR
+  LEASED
+}
+
 enum AssignmentStatus {
   SCHEDULED
   ACTIVE
@@ -46,6 +51,8 @@ model User {
   assignedDrivers        DriverProfile[]     @relation("AssignedDispatcher")
   assignmentsAsDriver    Assignment[]        @relation("DriverAssignments")
   assignmentsAsDispatcher Assignment[]       @relation("DispatcherAssignments")
+  ownedVehicles          Vehicle[]           @relation("VehicleOwner")
+  driverVehicles         DriverVehicle[]     @relation("DriverVehicleLink")
 }
 
 model Role {
@@ -99,18 +106,34 @@ model DispatcherProfile {
 }
 
 model Vehicle {
-  id        Int           @id @default(autoincrement())
-  make      String
-  model     String
-  year      Int
-  vin       String        @unique
-  plate     String        @unique
-  status    VehicleStatus @default(AVAILABLE)
-  deletedAt DateTime?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id            Int               @id @default(autoincrement())
+  make          String
+  model         String
+  year          Int
+  vin           String            @unique
+  plate         String            @unique
+  status        VehicleStatus     @default(AVAILABLE)
+  ownership     VehicleOwnership  @default(LEASED)
+  ownerDriverId Int?
+  deletedAt     DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
-  assignments Assignment[]
+  assignments   Assignment[]
+  driverVehicles DriverVehicle[]   @relation("DriverVehicleLink")
+  ownerDriver   User?              @relation("VehicleOwner", fields: [ownerDriverId], references: [id])
+}
+
+model DriverVehicle {
+  id        Int      @id @default(autoincrement())
+  driverId  Int
+  vehicleId Int
+  createdAt DateTime @default(now())
+
+  driver  User    @relation("DriverVehicleLink", fields: [driverId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation("DriverVehicleLink", fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([driverId, vehicleId])
 }
 
 model Assignment {

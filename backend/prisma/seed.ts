@@ -36,6 +36,7 @@ const roleDefs = [
     name: "HR",
     description: "Manages driver/dispatch accounts, vehicles, and fleet documentation",
     permissionSlugs: [
+      "users.manage",
       "drivers.view", "drivers.create", "drivers.update", "drivers.delete",
       "dispatchers.view", "dispatchers.create", "dispatchers.update", "dispatchers.delete",
       "vehicles.view", "vehicles.create", "vehicles.update", "vehicles.delete",
@@ -343,6 +344,26 @@ async function main() {
       transit,
       dispatcherId: dispatcher.id,
     });
+
+    const vehicleLinks = [
+      { driver: driver1, vehicle: camry },
+      { driver: driver2, vehicle: transit },
+    ];
+    for (const link of vehicleLinks) {
+      await prisma.driverVehicle.upsert({
+        where: {
+          driverId_vehicleId: {
+            driverId: link.driver.id,
+            vehicleId: link.vehicle.id,
+          },
+        },
+        update: {},
+        create: {
+          driverId: link.driver.id,
+          vehicleId: link.vehicle.id,
+        },
+      });
+    }
   }
 
   await seedStatSnapshots();
