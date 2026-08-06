@@ -18,6 +18,7 @@ const StyledBreadcrumbs = styled(Breadcrumbs)(({ theme }) => ({
 const routeMap: Record<string, string> = {
   '/hr': 'HR Dashboard',
   '/hr/drivers': 'Drivers',
+  '/hr/dispatchers': 'Dispatchers',
   '/hr/vehicles': 'Vehicles',
   '/dispatch': 'Dispatcher Dashboard',
 };

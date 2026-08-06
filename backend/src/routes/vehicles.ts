@@ -15,7 +15,11 @@ router.get(
       where: { deletedAt: null },
       include: {
         ownerDriver: { select: { firstName: true, lastName: true } },
-        driverVehicles: { select: { driverId: true } },
+        driverVehicles: {
+          select: {
+            driver: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
       },
       orderBy: { id: "asc" },
     });
@@ -34,7 +38,10 @@ router.get(
         ownerName: v.ownerDriver
           ? `${v.ownerDriver.firstName} ${v.ownerDriver.lastName}`
           : null,
-        driverIds: v.driverVehicles.map((dv) => dv.driverId),
+        drivers: v.driverVehicles.map((dv) => ({
+          id: dv.driver.id,
+          name: `${dv.driver.firstName} ${dv.driver.lastName}`,
+        })),
       })),
     );
   }),

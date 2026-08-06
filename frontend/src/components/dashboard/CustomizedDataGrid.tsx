@@ -1,10 +1,11 @@
-import { DataGrid, GridRowsProp, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridRowsProp, GridColDef, GridRowParams } from '@mui/x-data-grid';
 
 interface CustomizedDataGridProps {
   rows: GridRowsProp;
   columns: GridColDef[];
   checkboxSelection?: boolean;
   loading?: boolean;
+  onRowClick?: (params: GridRowParams) => void;
 }
 
 export default function CustomizedDataGrid({
@@ -12,6 +13,7 @@ export default function CustomizedDataGrid({
   columns,
   checkboxSelection = true,
   loading = false,
+  onRowClick,
 }: CustomizedDataGridProps) {
   return (
     <DataGrid
@@ -19,6 +21,7 @@ export default function CustomizedDataGrid({
       loading={loading}
       rows={rows}
       columns={columns}
+      onRowClick={onRowClick}
       getRowClassName={(params) =>
         params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
       }

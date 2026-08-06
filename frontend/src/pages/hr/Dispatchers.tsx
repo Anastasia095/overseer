@@ -1,23 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
+import Avatar from '@mui/material/Avatar';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import type { GridColDef } from '@mui/x-data-grid';
 import CustomizedDataGrid from '../../components/dashboard/CustomizedDataGrid';
-import AddVehicleDialog from '../../components/hr/AddVehicleDialog';
-import VehicleDetailDialog from '../../components/hr/VehicleDetailDialog';
-import { vehiclesApi } from '../../api/vehicles';
-import type { Vehicle } from '../../api/vehicles';
-import { vehicleColumns } from '../../internals/data/vehicleGridData';
+import CreateUserDialog from '../../components/hr/CreateUserDialog';
+import { dispatchersApi } from '../../api/dispatchers';
+import type { Dispatcher } from '../../api/dispatchers';
 
-export default function HrVehicles() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+export default function HrDispatchers() {
+  const [dispatchers, setDispatchers] = useState<Dispatcher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
-  const [detail, setDetail] = useState<Vehicle | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const refresh = () => setRefreshKey((k) => k + 1);
 
@@ -25,13 +24,13 @@ export default function HrVehicles() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    vehiclesApi
+    dispatchersApi
       .list()
       .then((data) => {
-        if (!cancelled) setVehicles(data);
+        if (!cancelled) setDispatchers(data);
       })
       .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load vehicles');
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load dispatchers');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -41,6 +40,34 @@ export default function HrVehicles() {
     };
   }, [refreshKey]);
 
+  const columns = useMemo<GridColDef[]>(
+    () => [
+      {
+        field: 'name',
+        headerName: 'Dispatcher',
+        flex: 1,
+        minWidth: 180,
+        renderCell: (params) => (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Avatar
+              sx={{
+                width: '28px',
+                height: '28px',
+                fontSize: '0.8rem',
+                bgcolor: 'primary.main',
+              }}
+            >
+              {String(params.value).toUpperCase().substring(0, 1)}
+            </Avatar>
+            {params.value}
+          </div>
+        ),
+      },
+      { field: 'email', headerName: 'Email', flex: 1.5, minWidth: 180 },
+    ],
+    [],
+  );
+
   return (
     <Box sx={{ width: '100%', maxWidth: { sm: '100%', md: '1700px' } }}>
       <Stack
@@ -49,10 +76,10 @@ export default function HrVehicles() {
       >
         <Box>
           <Typography component="h2" variant="h6">
-            Vehicles
+            Dispatchers
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Manage fleet vehicles, ownership, and drivers
+            Manage dispatcher accounts
           </Typography>
         </Box>
         <Button
@@ -61,7 +88,7 @@ export default function HrVehicles() {
           startIcon={<AddRoundedIcon />}
           onClick={() => setAddOpen(true)}
         >
-          Add Vehicle
+          Add Dispatcher
         </Button>
       </Stack>
 
@@ -71,18 +98,18 @@ export default function HrVehicles() {
         </Alert>
       )}
       <CustomizedDataGrid
-        rows={vehicles}
-        columns={vehicleColumns}
+        rows={dispatchers}
+        columns={columns}
         loading={loading}
-        onRowClick={(params) => setDetail(params.row as Vehicle)}
+        checkboxSelection={false}
       />
 
-      <AddVehicleDialog
+      <CreateUserDialog
+        role="dispatcher"
         open={addOpen}
         onClose={() => setAddOpen(false)}
         onCreated={refresh}
       />
-      <VehicleDetailDialog vehicle={detail} onClose={() => setDetail(null)} />
     </Box>
   );
 }

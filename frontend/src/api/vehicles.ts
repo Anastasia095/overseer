@@ -14,7 +14,7 @@ export interface Vehicle {
   ownership: VehicleOwnership;
   ownerDriverId: number | null;
   ownerName: string | null;
-  driverIds: number[];
+  drivers: { id: number; name: string }[];
 }
 
 export interface CreateVehicleInput {

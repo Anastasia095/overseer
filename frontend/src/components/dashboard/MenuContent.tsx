@@ -9,6 +9,7 @@ import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
 import LocalShippingRoundedIcon from '@mui/icons-material/LocalShippingRounded';
 import MapRoundedIcon from '@mui/icons-material/MapRounded';
+import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
 import { useAuth } from '../../context/AuthContext';
 
 export default function MenuContent() {
@@ -25,6 +26,7 @@ export default function MenuContent() {
       ? [
           { text: 'HR Dashboard', path: '/hr', icon: <DashboardRoundedIcon /> },
           { text: 'Drivers', path: '/hr/drivers', icon: <PeopleRoundedIcon /> },
+          { text: 'Dispatchers', path: '/hr/dispatchers', icon: <BadgeRoundedIcon /> },
           { text: 'Vehicles', path: '/hr/vehicles', icon: <LocalShippingRoundedIcon /> },
         ]
       : []),
