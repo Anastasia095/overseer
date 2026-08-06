@@ -117,9 +117,6 @@ export default function HrDashboard() {
           <HighlightedCard />
         </Grid>
       </Grid>
-      <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        Drivers
-      </Typography>
       <Grid container spacing={2} columns={12}>
         <Grid size={{ xs: 12 }}>
           <Stack sx={{ gap: 2 }}>
