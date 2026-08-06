@@ -18,7 +18,7 @@ router.post(
   authenticate,
   requirePermission("users.manage"),
   asyncHandler(async (req, res) => {
-    const { email, password, firstName, lastName, phone, role, licenseNo, licenseClass, licenseExpiry } =
+    const { email, password, firstName, lastName, phone, role, licenseNo, licenseClass, licenseExpiry, dispatcherId } =
       req.body ?? {};
 
     if (!email || !password || !firstName || !lastName) {
@@ -59,7 +59,27 @@ router.post(
         res.status(400).json({ error: "licenseNo, licenseClass and licenseExpiry are required for drivers" });
         return;
       }
-      data.driverProfile = { create: { licenseNo, licenseClass, licenseExpiry: new Date(licenseExpiry) } };
+      const profileData: {
+        licenseNo: string;
+        licenseClass: string;
+        licenseExpiry: Date;
+        assignedDispatcherId?: number;
+      } = { licenseNo, licenseClass, licenseExpiry: new Date(licenseExpiry) };
+      if (dispatcherId !== undefined && dispatcherId !== null && dispatcherId !== "") {
+        const dispatcher = await prisma.user.findFirst({
+          where: {
+            id: Number(dispatcherId),
+            deletedAt: null,
+            roles: { some: { slug: "dispatcher" } },
+          },
+        });
+        if (!dispatcher) {
+          res.status(400).json({ error: "dispatcherId must reference a dispatcher" });
+          return;
+        }
+        profileData.assignedDispatcherId = dispatcher.id;
+      }
+      data.driverProfile = { create: profileData };
     } else if (roleSlug === "dispatcher") {
       data.dispatcherProfile = { create: {} };
     }
