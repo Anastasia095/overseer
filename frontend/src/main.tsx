@@ -9,6 +9,7 @@ import {
   treeViewCustomizations,
 } from './theme/customizations';
 import App from './App';
+import { AuthProvider } from './context/AuthContext';
 
 const xThemeComponents = {
   ...chartsCustomizations,
@@ -21,7 +22,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AppTheme themeComponents={xThemeComponents}>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </AppTheme>
     </BrowserRouter>
   </StrictMode>,

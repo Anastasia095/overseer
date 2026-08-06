@@ -9,17 +9,29 @@ import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
 import LocalShippingRoundedIcon from '@mui/icons-material/LocalShippingRounded';
 import MapRoundedIcon from '@mui/icons-material/MapRounded';
-
-const mainListItems = [
-  { text: 'HR Dashboard', path: '/hr', icon: <DashboardRoundedIcon /> },
-  { text: 'Drivers', path: '/hr/drivers', icon: <PeopleRoundedIcon /> },
-  { text: 'Vehicles', path: '/hr/vehicles', icon: <LocalShippingRoundedIcon /> },
-  { text: 'Dispatcher', path: '/dispatch', icon: <MapRoundedIcon /> },
-];
+import { useAuth } from '../../context/AuthContext';
 
 export default function MenuContent() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const roles = user?.roles ?? [];
+
+  const canHr = roles.some((r) => r === 'hr' || r === 'admin');
+  const canDispatch = roles.some((r) => r === 'dispatcher' || r === 'admin');
+
+  const mainListItems = [
+    ...(canHr
+      ? [
+          { text: 'HR Dashboard', path: '/hr', icon: <DashboardRoundedIcon /> },
+          { text: 'Drivers', path: '/hr/drivers', icon: <PeopleRoundedIcon /> },
+          { text: 'Vehicles', path: '/hr/vehicles', icon: <LocalShippingRoundedIcon /> },
+        ]
+      : []),
+    ...(canDispatch
+      ? [{ text: 'Dispatcher', path: '/dispatch', icon: <MapRoundedIcon /> }]
+      : []),
+  ];
 
   return (
     <Stack sx={{ flexGrow: 1, p: 1, justifyContent: 'space-between' }}>

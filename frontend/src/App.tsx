@@ -5,11 +5,18 @@ import HrDashboard from './pages/hr/Dashboard';
 import HrDrivers from './pages/hr/Drivers';
 import HrVehicles from './pages/hr/Vehicles';
 import DispatcherDashboard from './pages/dispatcher/Dashboard';
-import { getToken } from './api/client';
+import { useAuth } from './context/AuthContext';
 import type { JSX } from 'react';
 
-function RequireAuth({ children }: { children: JSX.Element }) {
-  return getToken() ? children : <Navigate to="/login" replace />;
+function RequireRole({ roles, children }: { roles: string[]; children: JSX.Element }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!user.roles.some((r) => roles.includes(r))) {
+    const home = user.roles.includes('dispatcher') ? '/dispatch' : '/hr';
+    return <Navigate to={home} replace />;
+  }
+  return children;
 }
 
 export default function App() {
@@ -17,10 +24,38 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route element={<DashboardLayout />}>
-        <Route path="/hr" element={<RequireAuth><HrDashboard /></RequireAuth>} />
-        <Route path="/hr/drivers" element={<RequireAuth><HrDrivers /></RequireAuth>} />
-        <Route path="/hr/vehicles" element={<RequireAuth><HrVehicles /></RequireAuth>} />
-        <Route path="/dispatch" element={<RequireAuth><DispatcherDashboard /></RequireAuth>} />
+        <Route
+          path="/hr"
+          element={
+            <RequireRole roles={['hr', 'admin']}>
+              <HrDashboard />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/hr/drivers"
+          element={
+            <RequireRole roles={['hr', 'admin']}>
+              <HrDrivers />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/hr/vehicles"
+          element={
+            <RequireRole roles={['hr', 'admin']}>
+              <HrVehicles />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/dispatch"
+          element={
+            <RequireRole roles={['dispatcher', 'admin']}>
+              <DispatcherDashboard />
+            </RequireRole>
+          }
+        />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

@@ -9,11 +9,11 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import CircularProgress from "@mui/material/CircularProgress";
-import { authApi } from "../api/auth";
-import { setToken } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -24,10 +24,11 @@ export default function Login() {
     setError(null);
     setLoading(true);
     try {
-      const { token, user } = await authApi.login(email, password);
-      setToken(token);
+      const user = await login(email, password);
       const isDispatcher =
-        user.roles.includes("dispatcher") && !user.roles.includes("admin") && !user.roles.includes("hr");
+        user.roles.includes("dispatcher") &&
+        !user.roles.includes("admin") &&
+        !user.roles.includes("hr");
       navigate(isDispatcher ? "/dispatch" : "/hr");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");

@@ -1,13 +1,13 @@
-// custom api instance import
 import { api } from "./client";
 
-// shape of the object returned by the server
 export interface Driver {
   id: number;
   name: string;
   email: string;
   status: string | null;
+  dispatcherId: number | null;
   dispatcher: string | null;
+  vehicleIds: number[];
   phone: string | null;
   lastLat: number | null;
   lastLng: number | null;
@@ -15,7 +15,14 @@ export interface Driver {
 }
 
 export const driversApi = {
-  list() {
-    return api.get<Driver[]>("/drivers")
-  }
+  list: () => api.get<Driver[]>("/drivers"),
+  updateDispatcher: (id: number, dispatcherId: number | null) =>
+    api.put<{ driverId: number; dispatcherId: number | null }>(
+      `/drivers/${id}/dispatcher`,
+      { dispatcherId },
+    ),
+  updateVehicles: (id: number, vehicleIds: number[]) =>
+    api.put<{ driverId: number; vehicleIds: number[] }>(`/drivers/${id}/vehicles`, {
+      vehicleIds,
+    }),
 };
