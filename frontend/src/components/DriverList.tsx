@@ -41,7 +41,7 @@ export default function DriverList({
         if (!cancelled) setLoading(false);
       });
     return () => {
-      cancelled = true;
+        cancelled = true; 
     };
   }, [refreshKey]);
 
@@ -74,7 +74,7 @@ export default function DriverList({
                 <DirectionsCarRoundedIcon fontSize="small" />
               </IconButton>
             )}
-          </Stack>
+            </Stack> 
         ),
       },
     ];

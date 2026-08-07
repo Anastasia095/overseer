@@ -1,6 +1,7 @@
 import { GridColDef } from '@mui/x-data-grid';
 import Avatar from '@mui/material/Avatar';
 import Chip from '@mui/material/Chip';
+import { Link } from 'react-router-dom';
 
 export type DriverStatus = 'AVAILABLE' | 'EN_ROUTE' | 'IN_PROGRESS' | 'OFFLINE';
 
@@ -36,7 +37,13 @@ export const driverColumns: GridColDef[] = [
         >
           {String(params.value).toUpperCase().substring(0, 1)}
         </Avatar>
+        {/* to do: fix link color */}
+        <Link
+          to={`/drivers/${params.row.id}`}
+          style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 500 }}
+        >
         {params.value}
+        </Link >
       </div>
     ),
   },
@@ -52,8 +59,35 @@ export const driverColumns: GridColDef[] = [
         size="small"
         color={params.value ? statusColors[params.value as DriverStatus] : 'default'}
       />
-    ),
+    ), 
   },
-  { field: 'dispatcher', headerName: 'Dispatcher', flex: 0.5, minWidth: 110 },
+  {
+    field: 'dispatcher',
+    headerName: 'Dispatcher',
+    flex: 0.5,
+    minWidth: 110,
+    renderCell: (params) => {
+      // If no dispatcher is assigned, display a fallback
+      if (!params.value) return '—';
+
+      // 1. Grab the dispatcher's ID from the row data
+      const dispatcherId = params.row.dispatcherId || params.row.dispatcher?.id;
+
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {dispatcherId ? (
+            <Link
+              to={`/dispatchers/${dispatcherId}`}
+              style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 500 }}
+            >
+              {params.value}
+            </Link>
+          ) : (
+            params.value
+          )}
+        </div>
+      );
+    },
+  },
   { field: 'phone', headerName: 'Phone', flex: 1, minWidth: 130 },
 ];

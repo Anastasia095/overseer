@@ -4,37 +4,58 @@ import { asyncHandler, authenticate, requirePermission } from "../middleware/aut
 
 const router = Router();
 
+//get all drivers
 router.get(
   "/",
+  //MIDDLEWARE: 
   authenticate,
   requirePermission("drivers.view"),
+
+  // ERROR HANDLING Wrapper 
   asyncHandler(async (_req, res) => {
+
+    // DATABASE QUERY
     const users = await prisma.user.findMany({
-      where: { roles: { some: { slug: "driver" } }, deletedAt: null },
+      // Filter: Only get active users (not deleted) who have the "driver" role
+      where: {
+        roles: { some: { slug: "driver" } },
+        deletedAt: null
+      },
+      // Joins: Fetch related relational data at the same time
       include: {
         driverProfile: {
           include: {
-            dispatcher: true,
+            dispatcher: true, // fetch the dispatcher assigned to this driver
           },
         },
-        driverVehicles: { select: { vehicleId: true } },
+        driverVehicles: {
+          select: { vehicleId: true } // Only grab the vehicle IDs, ignore other vehicle data
+        },
       },
     });
 
+    //Format for rendering
     const drivers = users
+      // Safety check: Filter out any users that somehow lack a driver profile
       .filter((u) => u.driverProfile !== null)
+      // flatten remaining users
       .map((u) => {
         const profile = u.driverProfile!;
+
         return {
           id: u.id,
           name: `${u.firstName} ${u.lastName}`,
           email: u.email,
           status: profile.status,
+
           dispatcherId: profile.assignedDispatcherId,
           dispatcher: profile.dispatcher
             ? `${profile.dispatcher.firstName} ${profile.dispatcher.lastName}`
             : null,
+
+          // Flatten the array of vehicle objects into just an array of IDs
           vehicleIds: u.driverVehicles.map((dv) => dv.vehicleId),
+
           phone: u.phone,
           lastLat: profile.lastLat,
           lastLng: profile.lastLng,
@@ -46,6 +67,62 @@ router.get(
   }),
 );
 
+//get specific driver
+router.get(
+  "/:id",
+  authenticate,
+  requirePermission("drivers.view"),
+
+  asyncHandler(async (_req, res) => {
+    const id = parseInt(_req.params.id, 10);
+
+    const user = await prisma.user.findFirst({
+      where: {
+        id,
+        roles: { some: { slug: "driver" } },
+        deletedAt: null,
+      },
+      include: {
+        driverProfile: {
+          include: {
+            dispatcher: true,
+          },
+        },
+        driverVehicles: { select: { vehicleId: true } },
+      },
+    });
+
+    if (!user || !user.driverProfile) {
+      res.status(404).json({ message: "Driver not found" });
+      return;
+    }
+
+    const profile = user.driverProfile;
+
+    const driver = {
+      id: user.id,
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      phone: user.phone,
+      status: profile.status,
+
+      dispatcherId: profile.assignedDispatcherId,
+      dispatcher: profile.dispatcher
+        ? `${profile.dispatcher.firstName} ${profile.dispatcher.lastName}`
+        : null,
+
+      vehicleIds: user.driverVehicles.map((dv) => dv.vehicleId),
+      lastLat: profile.lastLat,
+      lastLng: profile.lastLng,
+      lastLocationAt: profile.lastLocationAt,
+
+      createdAt: user.createdAt,
+    };
+
+    res.json(driver);
+  })
+);
+//set dispatcher
 router.put(
   "/:id/dispatcher",
   authenticate,
@@ -93,6 +170,7 @@ router.put(
   }),
 );
 
+//set vehicle
 router.put(
   "/:id/vehicles",
   authenticate,
