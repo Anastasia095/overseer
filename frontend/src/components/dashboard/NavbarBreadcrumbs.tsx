@@ -25,7 +25,9 @@ const routeMap: Record<string, string> = {
 
 export default function NavbarBreadcrumbs() {
   const location = useLocation();
-  const current = routeMap[location.pathname] || 'Dashboard';
+  const current =
+    routeMap[location.pathname] ??
+    (location.pathname.startsWith('/hr/drivers/') ? 'Drivers' : 'Dashboard');
 
   return (
     <StyledBreadcrumbs

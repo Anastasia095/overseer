@@ -88,7 +88,15 @@ router.get(
             dispatcher: true,
           },
         },
-        driverVehicles: { select: { vehicleId: true } },
+        driverVehicles: {
+          include: {
+            vehicle: {
+              include: {
+                ownerDriver: { select: { firstName: true, lastName: true } },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -111,7 +119,24 @@ router.get(
         ? `${profile.dispatcher.firstName} ${profile.dispatcher.lastName}`
         : null,
 
-      vehicleIds: user.driverVehicles.map((dv) => dv.vehicleId),
+      licenseNo: profile.licenseNo,
+      licenseClass: profile.licenseClass,
+      licenseExpiry: profile.licenseExpiry,
+
+      vehicleIds: user.driverVehicles.map((dv) => dv.vehicle.id),
+      vehicles: user.driverVehicles.map((dv) => ({
+        id: dv.vehicle.id,
+        make: dv.vehicle.make,
+        model: dv.vehicle.model,
+        year: dv.vehicle.year,
+        vin: dv.vehicle.vin,
+        plate: dv.vehicle.plate,
+        status: dv.vehicle.status,
+        ownership: dv.vehicle.ownership,
+        ownerName: dv.vehicle.ownerDriver
+          ? `${dv.vehicle.ownerDriver.firstName} ${dv.vehicle.ownerDriver.lastName}`
+          : null,
+      })),
       lastLat: profile.lastLat,
       lastLng: profile.lastLng,
       lastLocationAt: profile.lastLocationAt,

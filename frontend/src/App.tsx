@@ -3,6 +3,7 @@ import DashboardLayout from './components/DashboardLayout';
 import Login from './pages/Login';
 import HrDashboard from './pages/hr/Dashboard';
 import HrDrivers from './pages/hr/Drivers';
+import Driver from './pages/hr/Driver';
 import HrDispatchers from './pages/hr/Dispatchers';
 import HrVehicles from './pages/hr/Vehicles';
 import DispatcherDashboard from './pages/dispatcher/Dashboard';
@@ -38,6 +39,14 @@ export default function App() {
           element={
             <RequireRole roles={['hr', 'admin']}>
               <HrDrivers />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/hr/drivers/:id"
+          element={
+            <RequireRole roles={['hr', 'admin']}>
+              <Driver />
             </RequireRole>
           }
         />

@@ -5,14 +5,14 @@ import { Link } from 'react-router-dom';
 
 export type DriverStatus = 'AVAILABLE' | 'EN_ROUTE' | 'IN_PROGRESS' | 'OFFLINE';
 
-const statusColors: Record<DriverStatus, 'success' | 'info' | 'warning' | 'default'> = {
+export const driverStatusColors: Record<DriverStatus, 'success' | 'info' | 'warning' | 'default'> = {
   AVAILABLE: 'success',
   EN_ROUTE: 'info',
   IN_PROGRESS: 'warning',
   OFFLINE: 'default',
 };
 
-const statusLabels: Record<DriverStatus, string> = {
+export const driverStatusLabels: Record<DriverStatus, string> = {
   AVAILABLE: 'Available',
   EN_ROUTE: 'En Route',
   IN_PROGRESS: 'In Progress',
@@ -39,8 +39,9 @@ export const driverColumns: GridColDef[] = [
         </Avatar>
         {/* to do: fix link color */}
         <Link
-          to={`/drivers/${params.row.id}`}
+          to={`/hr/drivers/${params.row.id}`}
           style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 500 }}
+          onClick={(e) => e.stopPropagation()}
         >
         {params.value}
         </Link >
@@ -55,9 +56,9 @@ export const driverColumns: GridColDef[] = [
     minWidth: 110,
     renderCell: (params) => (
       <Chip
-        label={params.value ? statusLabels[params.value as DriverStatus] : '—'}
+        label={params.value ? driverStatusLabels[params.value as DriverStatus] : '—'}
         size="small"
-        color={params.value ? statusColors[params.value as DriverStatus] : 'default'}
+        color={params.value ? driverStatusColors[params.value as DriverStatus] : 'default'}
       />
     ), 
   },
