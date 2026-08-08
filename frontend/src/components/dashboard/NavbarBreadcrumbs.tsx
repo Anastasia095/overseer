@@ -21,6 +21,7 @@ const routeMap: Record<string, string> = {
   '/hr/dispatchers': 'Dispatchers',
   '/hr/vehicles': 'Vehicles',
   '/dispatch': 'Dispatcher Dashboard',
+  '/driver/profile': 'My Profile',
 };
 
 export default function NavbarBreadcrumbs() {

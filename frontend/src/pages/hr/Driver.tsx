@@ -15,6 +15,8 @@ import Button from '@mui/material/Button';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import { driversApi, DriverProfile, DriverVehicleDetail } from '../../api/drivers';
 import { driverStatusColors, driverStatusLabels, DriverStatus } from '../../internals/data/driverGridData';
+import VacationCalendar from '../../components/drivers/VacationCalendar';
+import { useAuth } from '../../context/AuthContext';
 
 function formatDate(value: string | null): string {
   if (!value) return '—';
@@ -63,9 +65,10 @@ function VehicleCard({ vehicle }: { vehicle: DriverVehicleDetail }) {
   );
 }
 
-export default function Driver() {
+export default function Driver({ driverId: forcedId }: { driverId?: number }) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<DriverProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,9 +79,10 @@ export default function Driver() {
     let active = true;
     setLoading(true);
     setError(null);
-    const driverId = Number(id);
+    const parsed = Number(id);
+    const driverId = forcedId ?? (Number.isInteger(parsed) ? parsed : 0);
     driversApi
-      .get(Number.isInteger(driverId) ? driverId : 0)
+      .get(driverId)
       .then((data) => {
         if (active) setProfile(data);
       })
@@ -91,7 +95,7 @@ export default function Driver() {
     return () => {
       active = false;
     };
-  }, [id, reloadKey]);
+  }, [id, forcedId, reloadKey]);
 
   useEffect(() => {
     if (!profile) return;
@@ -111,6 +115,27 @@ export default function Driver() {
       active = false;
     };
   }, [profile]);
+
+  const canEditVacations =
+    !!user && (user.roles.includes('dispatcher') || user.roles.includes('admin') || user.roles.includes('driver'));
+
+  async function handleAddVacation(startDate: string, endDate: string) {
+    if (!profile) return;
+    await driversApi.createVacation(profile.id, { startDate, endDate });
+    setReloadKey((k) => k + 1);
+  }
+
+  async function handleUpdateVacation(vacationId: number, startDate: string, endDate: string) {
+    if (!profile) return;
+    await driversApi.updateVacation(profile.id, vacationId, { startDate, endDate });
+    setReloadKey((k) => k + 1);
+  }
+
+  async function handleDeleteVacation(vacationId: number) {
+    if (!profile) return;
+    await driversApi.deleteVacation(profile.id, vacationId);
+    setReloadKey((k) => k + 1);
+  }
 
   if (loading) {
     return (
@@ -234,6 +259,16 @@ export default function Driver() {
             <VehicleCard key={vehicle.id} vehicle={vehicle} />
           ))
         )}
+      </Box>
+
+      <Box sx={{ mt: 2 }}>
+        <VacationCalendar
+          vacations={profile.vacations}
+          canEdit={canEditVacations}
+          onAdd={handleAddVacation}
+          onUpdate={handleUpdateVacation}
+          onDelete={handleDeleteVacation}
+        />
       </Box>
     </Box>
   );

@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -38,6 +41,7 @@ const statusIconColors: Record<string, string> = {
 };
 
 export default function DispatcherDashboard() {
+  const navigate = useNavigate();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -168,9 +172,20 @@ export default function DispatcherDashboard() {
         <Grid size={{ xs: 12 }}>
           <Card variant="outlined">
             <CardContent>
-              <Typography component="h2" variant="subtitle2" gutterBottom>
-                Selected Driver — {selectedDriver?.name ?? 'None'}
-              </Typography>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography component="h2" variant="subtitle2">
+                  Selected Driver — {selectedDriver?.name ?? 'None'}
+                </Typography>
+                {selectedDriver && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => navigate(`/hr/drivers/${selectedDriver.id}`)}
+                  >
+                    View Driver Profile
+                  </Button>
+                )}
+              </Stack>
               <Grid container spacing={2} columns={12}>
                 <Grid size={{ xs: 6, md: 3 }}>
                   <Typography variant="caption" color="text.secondary">

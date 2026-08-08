@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../prisma.js";
 import { asyncHandler, authenticate, requirePermission } from "../middleware/auth.js";
+import type { AuthRequest } from "../middleware/auth.js";
 import { reverseGeocode } from "../services/geocode.js";
 
 const router = Router();
@@ -99,6 +100,7 @@ router.get(
             },
           },
         },
+        vacations: true,
       },
     });
 
@@ -143,6 +145,14 @@ router.get(
       lastLng: profile.lastLng,
       lastLocationAt: profile.lastLocationAt,
       lastLocationLabel: profile.lastLocationLabel,
+
+      vacations: user.vacations
+        .map((v) => ({
+          id: v.id,
+          startDate: v.startDate,
+          endDate: v.endDate,
+        }))
+        .sort((a, b) => a.startDate.getTime() - b.startDate.getTime()),
 
       createdAt: user.createdAt,
     };
@@ -297,6 +307,154 @@ router.put(
     ]);
 
     res.json({ driverId: id, vehicleIds: ids });
+  }),
+);
+
+function parseDateInput(value: unknown): Date | null {
+  if (typeof value !== "string" || !value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
+}
+
+//req already authenticate; requirePermission("vacations.manage") must be applied
+function canManageVacations(req: AuthRequest, driverId: number): boolean {
+  const user = req.user;
+  if (!user) return false;
+  const isManager = user.roles.some((r) => r === "admin" || r === "dispatcher" || r === "hr");
+  const isDriverOnly = user.roles.includes("driver") && !user.roles.some((r) => r === "admin" || r === "dispatcher" || r === "hr");
+  if (isManager) return true;
+  if (isDriverOnly) return driverId === user.id;
+  return false;
+}
+
+//list vacations for a driver
+router.get(
+  "/:id/vacations",
+  authenticate,
+  requirePermission("drivers.view"),
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const profile = await prisma.driverProfile.findUnique({ where: { driverId: id } });
+    if (!profile || profile.deletedAt) {
+      res.status(404).json({ error: "Driver not found" });
+      return;
+    }
+    const vacations = await prisma.driverVacation.findMany({
+      where: { driverId: id },
+      orderBy: { startDate: "asc" },
+    });
+    res.json(vacations.map((v) => ({ id: v.id, startDate: v.startDate, endDate: v.endDate })));
+  }),
+);
+
+//create vacation
+router.post(
+  "/:id/vacations",
+  authenticate,
+  requirePermission("vacations.manage"),
+  asyncHandler(async (req: AuthRequest, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+      res.status(400).json({ error: "Invalid driver id" });
+      return;
+    }
+    if (!canManageVacations(req, id)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    const start = parseDateInput(req.body?.startDate);
+    const end = parseDateInput(req.body?.endDate);
+    if (!start || !end) {
+      res.status(400).json({ error: "startDate and endDate must be valid dates" });
+      return;
+    }
+    if (start.getTime() > end.getTime()) {
+      res.status(400).json({ error: "startDate must be before or equal to endDate" });
+      return;
+    }
+
+    const profile = await prisma.driverProfile.findUnique({ where: { driverId: id } });
+    if (!profile || profile.deletedAt) {
+      res.status(404).json({ error: "Driver not found" });
+      return;
+    }
+
+    const created = await prisma.driverVacation.create({
+      data: { driverId: id, startDate: start, endDate: end },
+    });
+    res.status(201).json({ id: created.id, startDate: created.startDate, endDate: created.endDate });
+  }),
+);
+
+//update vacation
+router.put(
+  "/:id/vacations/:vacationId",
+  authenticate,
+  requirePermission("vacations.manage"),
+  asyncHandler(async (req: AuthRequest, res) => {
+    const id = Number(req.params.id);
+    const vacationId = Number(req.params.vacationId);
+    if (!Number.isInteger(id) || !Number.isInteger(vacationId)) {
+      res.status(400).json({ error: "Invalid driver or vacation id" });
+      return;
+    }
+    if (!canManageVacations(req, id)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    const start = parseDateInput(req.body?.startDate);
+    const end = parseDateInput(req.body?.endDate);
+    if (!start || !end) {
+      res.status(400).json({ error: "startDate and endDate must be valid dates" });
+      return;
+    }
+    if (start.getTime() > end.getTime()) {
+      res.status(400).json({ error: "startDate must be before or equal to endDate" });
+      return;
+    }
+
+    const existing = await prisma.driverVacation.findUnique({ where: { id: vacationId } });
+    if (!existing || existing.driverId !== id) {
+      res.status(404).json({ error: "Vacation not found" });
+      return;
+    }
+
+    const updated = await prisma.driverVacation.update({
+      where: { id: vacationId },
+      data: { startDate: start, endDate: end },
+    });
+    res.json({ id: updated.id, startDate: updated.startDate, endDate: updated.endDate });
+  }),
+);
+
+//delete vacation
+router.delete(
+  "/:id/vacations/:vacationId",
+  authenticate,
+  requirePermission("vacations.manage"),
+  asyncHandler(async (req: AuthRequest, res) => {
+    const id = Number(req.params.id);
+    const vacationId = Number(req.params.vacationId);
+    if (!Number.isInteger(id) || !Number.isInteger(vacationId)) {
+      res.status(400).json({ error: "Invalid driver or vacation id" });
+      return;
+    }
+    if (!canManageVacations(req, id)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    const existing = await prisma.driverVacation.findUnique({ where: { id: vacationId } });
+    if (!existing || existing.driverId !== id) {
+      res.status(404).json({ error: "Vacation not found" });
+      return;
+    }
+
+    await prisma.driverVacation.delete({ where: { id: vacationId } });
+    res.json({ deleted: true });
   }),
 );
 

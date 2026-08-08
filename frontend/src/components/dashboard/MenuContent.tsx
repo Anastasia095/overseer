@@ -20,18 +20,22 @@ export default function MenuContent() {
 
   const canHr = roles.some((r) => r === 'hr' || r === 'admin');
   const canDispatch = roles.some((r) => r === 'dispatcher' || r === 'admin');
+  const canDriver = roles.some((r) => r === 'driver');
 
   const mainListItems = [
     ...(canHr
       ? [
           { text: 'HR Dashboard', path: '/hr', icon: <DashboardRoundedIcon /> },
+        ...(canDispatch
+          ? [{ text: 'Dispatcher Dashboard', path: '/dispatch', icon: <MapRoundedIcon /> }]
+          : []),
           { text: 'Drivers', path: '/hr/drivers', icon: <PeopleRoundedIcon /> },
           { text: 'Dispatchers', path: '/hr/dispatchers', icon: <BadgeRoundedIcon /> },
           { text: 'Vehicles', path: '/hr/vehicles', icon: <LocalShippingRoundedIcon /> },
         ]
       : []),
-    ...(canDispatch
-      ? [{ text: 'Dispatcher', path: '/dispatch', icon: <MapRoundedIcon /> }]
+    ...(canDriver
+      ? [{ text: 'My Profile', path: '/driver/profile', icon: <PeopleRoundedIcon /> }]
       : []),
   ];
 

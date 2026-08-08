@@ -29,7 +29,12 @@ export default function Login() {
         user.roles.includes("dispatcher") &&
         !user.roles.includes("admin") &&
         !user.roles.includes("hr");
-      navigate(isDispatcher ? "/dispatch" : "/hr");
+      const isDriver =
+        user.roles.includes("driver") &&
+        !user.roles.includes("admin") &&
+        !user.roles.includes("hr") &&
+        !user.roles.includes("dispatcher");
+      navigate(isDispatcher ? "/dispatch" : isDriver ? "/driver/profile" : "/hr");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

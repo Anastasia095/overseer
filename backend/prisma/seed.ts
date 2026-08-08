@@ -22,6 +22,7 @@ const permissionDefs = [
   { slug: "assignments.delete", name: "Delete assignments", description: "Delete trip assignments" },
   { slug: "telemetry.view", name: "View telemetry", description: "View live driver telemetry" },
   { slug: "telemetry.ingest", name: "Ingest telemetry", description: "Submit GPS telemetry from the device" },
+  { slug: "vacations.manage", name: "Manage vacations", description: "Create and edit driver vacation days" },
 ] as const;
 
 const roleDefs = [
@@ -53,6 +54,7 @@ const roleDefs = [
       "vehicles.view",
       "assignments.view", "assignments.create", "assignments.update", "assignments.delete",
       "telemetry.view",
+      "vacations.manage",
     ],
   },
   {
@@ -63,6 +65,7 @@ const roleDefs = [
       "drivers.view",
       "assignments.view",
       "telemetry.ingest",
+      "vacations.manage",
     ],
   },
 ] as const;
@@ -139,6 +142,29 @@ async function seedStatSnapshots() {
       update: { activeDrivers, totalVehicles },
       create: { month, activeDrivers, totalVehicles },
     });
+  }
+}
+
+type VacationRange = Record<number, Array<{ startDate: Date; endDate: Date }>>;
+
+function dateFromNow(daysFromNow: number): Date {
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+async function seedVacations(rangesByDriver: VacationRange) {
+  const driverIds = Object.keys(rangesByDriver).map(Number);
+  await prisma.driverVacation.deleteMany({
+    where: { driverId: { in: driverIds } },
+  });
+  for (const [driverId, ranges] of Object.entries(rangesByDriver)) {
+    for (const range of ranges) {
+      await prisma.driverVacation.create({
+        data: { driverId: Number(driverId), ...range },
+      });
+    }
   }
 }
 
@@ -366,10 +392,22 @@ async function main() {
     }
   }
 
+  if (driver1 && driver2 && camry && transit) {
+    await seedVacations({
+      [driver1.id]: [
+        { startDate: dateFromNow(25), endDate: dateFromNow(31) },
+        { startDate: dateFromNow(80), endDate: dateFromNow(84) },
+      ],
+      [driver2.id]: [
+        { startDate: dateFromNow(45), endDate: dateFromNow(51) },
+      ],
+    });
+  }
+
   await seedStatSnapshots();
 
   console.log(
-    "Seeded roles, permissions, users, drivers, vehicles, loads, and monthly snapshots.",
+    "Seeded roles, permissions, users, drivers, vehicles, loads, vacations, and monthly snapshots.",
   );
 }
 

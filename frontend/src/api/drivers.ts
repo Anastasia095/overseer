@@ -27,11 +27,18 @@ export interface DriverVehicleDetail {
   ownerName: string | null;
 }
 
+export interface DriverVacation {
+  id: number;
+  startDate: string;
+  endDate: string;
+}
+
 export interface DriverProfile extends Driver {
   licenseNo: string | null;
   licenseClass: string | null;
   licenseExpiry: string | null;
   vehicles: DriverVehicleDetail[];
+  vacations: DriverVacation[];
   createdAt: string;
 }
 
@@ -49,4 +56,13 @@ export const driversApi = {
     api.put<{ driverId: number; vehicleIds: number[] }>(`/drivers/${id}/vehicles`, {
       vehicleIds,
     }),
+  createVacation: (id: number, dates: { startDate: string; endDate: string }) =>
+    api.post<DriverVacation>(`/drivers/${id}/vacations`, dates),
+  updateVacation: (
+    id: number,
+    vacationId: number,
+    dates: { startDate: string; endDate: string },
+  ) => api.put<DriverVacation>(`/drivers/${id}/vacations/${vacationId}`, dates),
+  deleteVacation: (id: number, vacationId: number) =>
+    api.delete<{ deleted: boolean }>(`/drivers/${id}/vacations/${vacationId}`),
 };

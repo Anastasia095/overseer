@@ -47,6 +47,7 @@ model User {
 
   roles                  Role[]
   driverProfile          DriverProfile?      @relation("DriverProfileOwner")
+  vacations              DriverVacation[]    @relation("DriverVacations")
   dispatcherProfile      DispatcherProfile?
   assignedDrivers        DriverProfile[]     @relation("AssignedDispatcher")
   assignmentsAsDriver    Assignment[]        @relation("DriverAssignments")
@@ -97,6 +98,17 @@ model DriverProfile {
 
   driver     User  @relation("DriverProfileOwner", fields: [driverId], references: [id], onDelete: Cascade)
   dispatcher User? @relation("AssignedDispatcher", fields: [assignedDispatcherId], references: [id])
+}
+
+model DriverVacation {
+  id        Int      @id @default(autoincrement())
+  driverId  Int
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  driver User @relation("DriverVacations", fields: [driverId], references: [id], onDelete: Cascade)
 }
 
 model DispatcherProfile {

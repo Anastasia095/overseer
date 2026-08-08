@@ -7,6 +7,7 @@ import Driver from './pages/hr/Driver';
 import HrDispatchers from './pages/hr/Dispatchers';
 import HrVehicles from './pages/hr/Vehicles';
 import DispatcherDashboard from './pages/dispatcher/Dashboard';
+import DriverProfile from './pages/driver/Profile';
 import { useAuth } from './context/AuthContext';
 import type { JSX } from 'react';
 
@@ -45,8 +46,16 @@ export default function App() {
         <Route
           path="/hr/drivers/:id"
           element={
-            <RequireRole roles={['hr', 'admin']}>
+            <RequireRole roles={['hr', 'admin', 'dispatcher']}>
               <Driver />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/driver/profile"
+          element={
+            <RequireRole roles={['driver', 'admin']}>
+              <DriverProfile />
             </RequireRole>
           }
         />
