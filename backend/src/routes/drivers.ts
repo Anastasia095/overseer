@@ -61,6 +61,7 @@ router.get(
           lastLat: profile.lastLat,
           lastLng: profile.lastLng,
           lastLocationAt: profile.lastLocationAt,
+          lastLocationLabel: profile.lastLocationLabel,
         };
       });
 

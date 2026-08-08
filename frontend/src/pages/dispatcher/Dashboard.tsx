@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
@@ -63,6 +63,33 @@ export default function DispatcherDashboard() {
     };
   }, []);
 
+  const resolveSelectedLocation = useCallback(
+    (driver: Driver | null) => {
+      if (!driver) return;
+      if (driver.lastLat === null || driver.lastLng === null) return;
+      if (driver.lastLocationLabel) return;
+      let cancelled = false;
+      driversApi
+        .resolveAddress(driver.id)
+        .then((res) => {
+          if (!cancelled && res.address) {
+            setDrivers((prev) =>
+              prev.map((d) => (d.id === driver.id ? { ...d, lastLocationLabel: res.address } : d)),
+            );
+          }
+        })
+        .catch(() => {});
+      return () => {
+        cancelled = true;
+      };
+    },
+    [],
+  );
+
+  useEffect(() => {
+    resolveSelectedLocation(selectedDriver);
+  }, [selectedDriver, resolveSelectedLocation]);
+
   const fleet: FleetVehicle[] = useMemo(
     () =>
       drivers.map((d) => ({
@@ -71,6 +98,7 @@ export default function DispatcherDashboard() {
         status: d.status ? statusLabels[d.status] ?? d.status : undefined,
         lat: d.lastLat ?? undefined,
         lng: d.lastLng ?? undefined,
+        locationLabel: d.lastLocationLabel ?? undefined,
         lastLocationAt: d.lastLocationAt ?? undefined,
       })),
     [drivers],
@@ -182,7 +210,8 @@ export default function DispatcherDashboard() {
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     {selectedDriver?.lastLat != null && selectedDriver?.lastLng != null
-                      ? `${selectedDriver.lastLat.toFixed(4)}, ${selectedDriver.lastLng.toFixed(4)}`
+                      ? selectedDriver.lastLocationLabel ??
+                        `${selectedDriver.lastLat.toFixed(4)}, ${selectedDriver.lastLng.toFixed(4)}`
                       : '—'}
                   </Typography>
                 </Grid>

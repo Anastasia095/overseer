@@ -12,6 +12,7 @@ export interface Driver {
   lastLat: number | null;
   lastLng: number | null;
   lastLocationAt: string | null;
+  lastLocationLabel: string | null;
 }
 
 export interface DriverVehicleDetail {
@@ -31,7 +32,6 @@ export interface DriverProfile extends Driver {
   licenseClass: string | null;
   licenseExpiry: string | null;
   vehicles: DriverVehicleDetail[];
-  lastLocationLabel: string | null;
   createdAt: string;
 }
 

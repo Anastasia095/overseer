@@ -10,6 +10,7 @@ export interface FleetVehicle {
   lat?: number;
   lng?: number;
   heading?: number;
+  locationLabel?: string;
   lastLocationAt?: string;
 }
 
@@ -113,6 +114,11 @@ function VehicleMarkers({ vehicles }: { vehicles: FleetVehicle[] }) {
             {selected.status && (
               <Typography variant="body2" color="text.secondary">
                 {selected.status}
+              </Typography>
+            )}
+            {selected.locationLabel && (
+              <Typography variant="body2" color="text.secondary">
+                {selected.locationLabel}
               </Typography>
             )}
             {selected.lastLocationAt && (
