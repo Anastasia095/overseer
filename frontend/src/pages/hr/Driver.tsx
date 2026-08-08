@@ -70,6 +70,7 @@ export default function Driver() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [locationLabel, setLocationLabel] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -91,6 +92,25 @@ export default function Driver() {
       active = false;
     };
   }, [id, reloadKey]);
+
+  useEffect(() => {
+    if (!profile) return;
+    if (profile.lastLat === null || profile.lastLng === null) return;
+    if (profile.lastLocationLabel) {
+      setLocationLabel(profile.lastLocationLabel);
+      return;
+    }
+    let active = true;
+    driversApi
+      .resolveAddress(profile.id)
+      .then((res) => {
+        if (active && res.address) setLocationLabel(res.address);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [profile]);
 
   if (loading) {
     return (
@@ -186,11 +206,12 @@ export default function Driver() {
             <CardContent>
               <Stack spacing={2}>
                 <Detail
-                  label="Last location"
+                  label="Location"
                   value={
-                    profile.lastLat !== null && profile.lastLng !== null
+                    locationLabel ??
+                    (profile.lastLat !== null && profile.lastLng !== null
                       ? `${profile.lastLat.toFixed(4)}, ${profile.lastLng.toFixed(4)}`
-                      : '—'
+                      : '—')
                   }
                 />
                 <Detail label="Reported" value={formatDateTime(profile.lastLocationAt)} />

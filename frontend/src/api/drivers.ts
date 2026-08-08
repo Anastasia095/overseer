@@ -31,12 +31,15 @@ export interface DriverProfile extends Driver {
   licenseClass: string | null;
   licenseExpiry: string | null;
   vehicles: DriverVehicleDetail[];
+  lastLocationLabel: string | null;
   createdAt: string;
 }
 
 export const driversApi = {
   list: () => api.get<Driver[]>("/drivers"),
   get: (id: number) => api.get<DriverProfile>(`/drivers/${id}`),
+  resolveAddress: (id: number) =>
+    api.post<{ address: string | null }>(`/drivers/${id}/geocode`, {}),
   updateDispatcher: (id: number, dispatcherId: number | null) =>
     api.put<{ driverId: number; dispatcherId: number | null }>(
       `/drivers/${id}/dispatcher`,

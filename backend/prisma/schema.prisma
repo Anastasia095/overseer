@@ -88,6 +88,9 @@ model DriverProfile {
   lastLat              Float?
   lastLng              Float?
   lastLocationAt       DateTime?
+  lastLocationLabel    String?
+  lastGeocodedLat      Float?
+  lastGeocodedLng      Float?
   deletedAt            DateTime?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt

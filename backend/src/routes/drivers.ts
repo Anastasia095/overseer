@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../prisma.js";
 import { asyncHandler, authenticate, requirePermission } from "../middleware/auth.js";
+import { reverseGeocode } from "../services/geocode.js";
 
 const router = Router();
 
@@ -140,11 +141,65 @@ router.get(
       lastLat: profile.lastLat,
       lastLng: profile.lastLng,
       lastLocationAt: profile.lastLocationAt,
+      lastLocationLabel: profile.lastLocationLabel,
 
       createdAt: user.createdAt,
     };
 
     res.json(driver);
+  })
+);
+
+//resolve geocode
+router.post(
+  "/:id/geocode",
+  authenticate,
+  requirePermission("drivers.view"),
+
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+      res.status(400).json({ error: "Invalid driver id" });
+      return;
+    }
+
+    const profile = await prisma.driverProfile.findUnique({ where: { driverId: id } });
+    if (!profile || profile.deletedAt) {
+      res.status(404).json({ error: "Driver not found" });
+      return;
+    }
+
+    if (profile.lastLat === null || profile.lastLng === null) {
+      res.json({ address: null });
+      return;
+    }
+
+    // Cache hit: already resolved, so skip api call
+    if (
+      profile.lastLocationLabel &&
+      profile.lastGeocodedLat === profile.lastLat &&
+      profile.lastGeocodedLng === profile.lastLng
+    ) {
+      res.json({ address: profile.lastLocationLabel });
+      return;
+    }
+
+    const address = await reverseGeocode(profile.lastLat, profile.lastLng);
+    if (address) {
+      await prisma.driverProfile.update({
+        where: { driverId: id },
+        data: {
+          lastLocationLabel: address,
+          lastGeocodedLat: profile.lastLat,
+          lastGeocodedLng: profile.lastLng,
+        },
+      });
+      res.json({ address });
+      return;
+    }
+
+    // No API key or the request failed 
+    res.json({ address: null });
   })
 );
 //set dispatcher
