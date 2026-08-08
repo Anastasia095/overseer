@@ -156,6 +156,8 @@ model Assignment {
   driverId     Int
   vehicleId    Int
   dispatcherId Int
+  origin       String?
+  destination  String?
   assignedAt   DateTime         @default(now())
   startsAt     DateTime?
   endsAt       DateTime?

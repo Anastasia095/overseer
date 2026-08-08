@@ -21,6 +21,7 @@ const routeMap: Record<string, string> = {
   '/hr/dispatchers': 'Dispatchers',
   '/hr/vehicles': 'Vehicles',
   '/dispatch': 'Dispatcher Dashboard',
+  '/dispatch/loads': 'Loads',
   '/driver/profile': 'My Profile',
 };
 

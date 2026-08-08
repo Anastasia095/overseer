@@ -6,6 +6,7 @@ import driversRouter from "./routes/drivers.js";
 import dashboardRouter from "./routes/dashboard.js";
 import dispatchersRouter from "./routes/dispatchers.js";
 import vehiclesRouter from "./routes/vehicles.js";
+import assignmentsRouter from "./routes/assignments.js";
 import { startStatSnapshotJob } from "./jobs/statSnapshot.js";
 
 const app = express();
@@ -23,6 +24,7 @@ app.use("/api/v1/drivers", driversRouter);
 app.use("/api/v1/dashboard", dashboardRouter);
 app.use("/api/v1/dispatchers", dispatchersRouter);
 app.use("/api/v1/vehicles", vehiclesRouter);
+app.use("/api/v1/assignments", assignmentsRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ error: "Not found" });

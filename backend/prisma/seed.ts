@@ -91,6 +91,15 @@ async function seedHistoricalLoads(opts: {
     where: { status: { in: ["COMPLETED", "CANCELLED"] } },
   });
 
+  const demoRoutes = [
+    { origin: "Los Angeles, CA", destination: "Las Vegas, NV" },
+    { origin: "Phoenix, AZ", destination: "Tucson, AZ" },
+    { origin: "San Diego, CA", destination: "Bakersfield, CA" },
+    { origin: "Sacramento, CA", destination: "Reno, NV" },
+    { origin: "San Jose, CA", destination: "Fresno, CA" },
+    { origin: "Oakland, CA", destination: "Modesto, CA" },
+  ];
+
   const now = new Date();
   const thisMonday = startOfWeek(now);
   const drivers = [opts.driver1, opts.driver2];
@@ -99,6 +108,7 @@ async function seedHistoricalLoads(opts: {
   for (let w = 8; w >= 1; w--) {
     const monday = new Date(thisMonday.getTime() - w * 7 * 24 * 60 * 60 * 1000);
     const completedCount = w % 2 === 0 ? 2 : 3;
+    const route = demoRoutes[(w + completedCount) % demoRoutes.length];
 
     for (let i = 0; i < completedCount; i++) {
       await prisma.assignment.create({
@@ -107,6 +117,8 @@ async function seedHistoricalLoads(opts: {
           vehicleId: vehicles[i % vehicles.length].id,
           dispatcherId: opts.dispatcherId,
           status: "COMPLETED",
+          origin: route.origin,
+          destination: route.destination,
           createdAt: new Date(monday.getTime() + i * 3600 * 1000),
           assignedAt: new Date(monday.getTime() + i * 3600 * 1000),
           startsAt: new Date(monday.getTime() + i * 3600 * 1000),
@@ -122,6 +134,8 @@ async function seedHistoricalLoads(opts: {
         vehicleId: vehicles[completedCount % vehicles.length].id,
         dispatcherId: opts.dispatcherId,
         status: "CANCELLED",
+        origin: route.origin,
+        destination: route.destination,
         createdAt: new Date(monday.getTime() + 2 * 3600 * 1000),
         assignedAt: new Date(monday.getTime() + 2 * 3600 * 1000),
         startsAt: new Date(monday.getTime() + 2 * 3600 * 1000),
@@ -354,9 +368,19 @@ async function main() {
           driverId: driver1.id,
           vehicleId: camry.id,
           dispatcherId: dispatcher.id,
+          origin: "Los Angeles, CA",
+          destination: "San Francisco, CA",
           status: "SCHEDULED",
           startsAt: new Date(),
           endsAt: new Date(Date.now() + 1000 * 60 * 60 * 8),
+        },
+      });
+    } else if (existing.origin === null) {
+      await prisma.assignment.update({
+        where: { id: existing.id },
+        data: {
+          origin: "Los Angeles, CA",
+          destination: "San Francisco, CA",
         },
       });
     }

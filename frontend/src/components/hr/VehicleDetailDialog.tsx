@@ -10,8 +10,6 @@ import type { Vehicle } from '../../api/vehicles';
 
 const statusLabels: Record<string, string> = {
   AVAILABLE: 'Available',
-  IN_USE: 'In Use',
-  MAINTENANCE: 'Maintenance',
   OUT_OF_SERVICE: 'Out of Service',
 };
 

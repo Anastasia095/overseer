@@ -14,14 +14,20 @@ router.get(
   requirePermission("drivers.view"),
 
   // ERROR HANDLING Wrapper 
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req: AuthRequest, res) => {
 
     // DATABASE QUERY
+    const isDispatcherOnly =
+      req.user?.roles.includes("dispatcher") &&
+      !req.user?.roles.some((r) => r === "admin" || r === "hr");
+
     const users = await prisma.user.findMany({
       // Filter: Only get active users (not deleted) who have the "driver" role
       where: {
         roles: { some: { slug: "driver" } },
-        deletedAt: null
+        deletedAt: null,
+        // Dispatchers only see the drivers assigned to them; admin/HR see all
+        ...(isDispatcherOnly ? { driverProfile: { assignedDispatcherId: req.user!.id } } : {}),
       },
       // Joins: Fetch related relational data at the same time
       include: {
