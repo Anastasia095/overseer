@@ -49,9 +49,12 @@ export default function Login() {
     >
       <Card sx={{ width: 400, p: 2 }}>
         <CardContent>
-          <Typography variant="h5" align="center" gutterBottom>
-            Overseer
-          </Typography>
+          <Box
+            component="img"
+            src="/overseer-logo.png"
+            alt="Overseer"
+            sx={{ width: '100%', height: 'auto', display: 'block', mb: 1 }}
+          />
           <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
             Fleet Location Dashboard
           </Typography>

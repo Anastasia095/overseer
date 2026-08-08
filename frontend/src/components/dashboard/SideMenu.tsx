@@ -40,9 +40,12 @@ export default function SideMenu() {
           p: 1.5,
         }}
       >
-        <Typography variant="h6" sx={{ px: 1, py: 0.5, color: 'text.primary' }}>
-          Overseer
-        </Typography>
+        <Box
+          component="img"
+          src="/overseer-logo.png"
+          alt="Overseer"
+          sx={{ width: '100%', height: 'auto', display: 'block' }}
+        />
       </Box>
       <Divider />
       <Box
